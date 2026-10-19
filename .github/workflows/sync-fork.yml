@@ -1,0 +1,30 @@
+name: sync-fork
+on:
+  schedule:
+    # Mon ~06:05 PT (13:05 UTC) - upstream ZeroTricks updates flow into this fork weekly.
+    - cron: "5 13 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: merge upstream main into fork main (merge commits, never rebase)
+        run: |
+          git remote add upstream https://github.com/ZeroTricks/lumo-tamer.git
+          git fetch upstream main
+          git merge upstream/main --no-edit
+        # tools.nektos/act-style conflicts fail the job loudly rather than force-pushing
+
+      - name: push (only on fast-forward/mergeable)
+        run: git push origin main
