@@ -1,0 +1,19 @@
+# Restore the override used when this stack was first brought up (named
+# volume instead of ./browser-data so the logged-in Lumo session survives
+# container/OS restarts; tmpfs XDG_RUNTIME_DIR fixes Selkies on Docker Desktop).
+# Added 2026-10-19: memory cap - browser was 3.0GiB of a 11.68GiB Docker Desktop
+# VM and driving kswapd0 swap-thrash into every container (monitoring CPU spikes).
+# Chromium sheds page cache under the cap before OOM; login cookies live on the
+# persistent named volume, so tab reloads do not lose auth.
+services:
+  browser:
+    mem_limit: 2g
+    environment:
+      - XDG_RUNTIME_DIR=/tmp/runtime
+    volumes:
+      - lumo_browser_config:/config
+    tmpfs:
+      - /tmp/runtime:mode=0700,uid=1000,gid=1000
+
+volumes:
+  lumo_browser_config:
